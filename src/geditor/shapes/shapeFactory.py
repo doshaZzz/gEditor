@@ -1,12 +1,8 @@
-from enum import Enum
 from shapes.rectangle import Rectangle
-
-class TypeShape(Enum) :
-    """Типы фигур"""
-    RECTANGLE = 1
-    CIRCLE = 2
-    TRIANGLE = 3
-    ### todo: Добавить остальные фигуры сюда
+from shapes.circle import Circle
+from shapes.triangle import Triangle, RotatingTriangle
+from .typeShape import TypeShape
+from shapes.groupShape import GroupShape
     
 
 class ShapeFactory:
@@ -22,8 +18,19 @@ class ShapeFactory:
         """
         if shape_type == TypeShape.RECTANGLE:
             return Rectangle()
-                
-        ### todo: Добавить остальные фигуры сюда
+        
+        if shape_type == TypeShape.CIRCLE:
+            return Circle()
+        
+        if shape_type == TypeShape.TRIANGLE:
+            return Triangle()
+        
+        if shape_type == TypeShape.ROTATE_TRIANGLE:
+            return RotatingTriangle()
+        
+        if shape_type == TypeShape.GROUP:
+            return GroupShape() 
+        
         else:
             raise ValueError(f"Unknown shape type: {shape_type}")
         
