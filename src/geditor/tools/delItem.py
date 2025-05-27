@@ -7,6 +7,5 @@ class Del:
     @staticmethod
     def deleteItem(scene: QGraphicsScene):
         selected_items = scene.selectedItems()    
-        # Remove each selected item
         for item in selected_items:
             scene.removeItem(item)

@@ -1,0 +1,157 @@
+[
+  {
+    "type": "GROUP",
+    "x": -662.0,
+    "y": -385.0,
+    "rotation": 0,
+    "z_value": 0.0,
+    "items": [
+      {
+        "type": "GROUP",
+        "x": 77.0,
+        "y": 115.0,
+        "rotation": 0,
+        "z_value": 0.0,
+        "items": [
+          {
+            "type": "TRIANGLE",
+            "width": 50,
+            "height": 50,
+            "color": "#000000",
+            "x": 9.695068359375,
+            "y": 26.887319564819336,
+            "z_value": 0.0,
+            "rotation": 0,
+            "animation_duration": 2000,
+            "animation_running": true,
+            "relative_x": 9.695068359375,
+            "relative_y": 26.887319564819336
+          },
+          {
+            "type": "RECTANGLE",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 50.0,
+            "height": 50.0,
+            "color": "#000000",
+            "z_value": 0.0,
+            "rotation": 0,
+            "animation_duration": 2000,
+            "animation_running": true,
+            "relative_x": 0.0,
+            "relative_y": 0.0
+          },
+          {
+            "type": "CIRCLE",
+            "x": 10.0,
+            "y": 0.0,
+            "radius": 25.0,
+            "color": "#000000",
+            "z_value": 0.0,
+            "rotation": 0,
+            "animation_duration": 2000,
+            "animation_running": true,
+            "relative_x": 10.0,
+            "relative_y": 0.0
+          }
+        ],
+        "relative_x": 77.0,
+        "relative_y": 115.0
+      },
+      {
+        "type": "GROUP",
+        "x": 242.52340698242188,
+        "y": 43.8595933914184,
+        "rotation": 69.3,
+        "z_value": 0.0,
+        "items": [
+          {
+            "type": "RECTANGLE",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 50.0,
+            "height": 50.0,
+            "color": "#000000",
+            "z_value": 0.0,
+            "rotation": 0,
+            "relative_x": 0.0,
+            "relative_y": 0.0
+          },
+          {
+            "type": "CIRCLE",
+            "x": 10.0,
+            "y": 0.0,
+            "radius": 25.0,
+            "color": "#000000",
+            "z_value": 0.0,
+            "rotation": 0,
+            "relative_x": 10.0,
+            "relative_y": 0.0
+          },
+          {
+            "type": "TRIANGLE",
+            "width": 50,
+            "height": 50,
+            "color": "#000000",
+            "x": 20.0,
+            "y": 0.0,
+            "z_value": 0.0,
+            "rotation": 0,
+            "relative_x": 20.0,
+            "relative_y": 0.0
+          }
+        ],
+        "animation_duration": 2000,
+        "animation_running": true,
+        "relative_x": 242.52340698242188,
+        "relative_y": 43.8595933914184
+      },
+      {
+        "type": "GROUP",
+        "x": 0.0,
+        "y": 0.0,
+        "rotation": 0,
+        "z_value": 0.0,
+        "items": [
+          {
+            "type": "CIRCLE",
+            "x": 10.0,
+            "y": 0.0,
+            "radius": 25.0,
+            "color": "#000000",
+            "z_value": 0.0,
+            "rotation": 0,
+            "relative_x": 10.0,
+            "relative_y": 0.0
+          },
+          {
+            "type": "RECTANGLE",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 50.0,
+            "height": 50.0,
+            "color": "#000000",
+            "z_value": 0.0,
+            "rotation": 0,
+            "relative_x": 0.0,
+            "relative_y": 0.0
+          },
+          {
+            "type": "TRIANGLE",
+            "width": 50,
+            "height": 50,
+            "color": "#000000",
+            "x": 20.0,
+            "y": 0.0,
+            "z_value": 0.0,
+            "rotation": 0,
+            "relative_x": 20.0,
+            "relative_y": 0.0
+          }
+        ],
+        "relative_x": 0.0,
+        "relative_y": 0.0
+      }
+    ]
+  }
+]

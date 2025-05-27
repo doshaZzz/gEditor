@@ -1,6 +1,5 @@
 import sys
-
-from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtCore import QSize, Qt, QTimer
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QGraphicsScene, QToolBar, QMenu, QGraphicsView, QGraphicsEllipseItem, QGraphicsItemGroup, QGraphicsItem
 from PyQt6.QtGui import QAction, QPainter
 from shapes.groupShape import GroupShape
@@ -8,6 +7,8 @@ from shapes.shapeFactory import ShapeFactory
 from shapes.typeShape import TypeShape
 from tools.undoRedo import UndoRedo
 from tools.delItem import Del
+from tools.saver import Saver
+from tools.autoRotateShape import auto_rotate
 
 
 class MainScene(QGraphicsScene):
@@ -15,60 +16,47 @@ class MainScene(QGraphicsScene):
         super().__init__(*args, **kwargs)
         self.undo_redo = undo_redo
         self._initial_positions = {}
+        # Подключите сигнал selectionChanged к методу
+        self.selectionChanged.connect(self.on_selection_changed)
+
+    def on_selection_changed(self):
+        print(f"Выбор изменен: {[str(item) for item in self.selectedItems()]}")
+        print(f"Элементы сцены: {[str(item) for item in self.items()]}")
 
     def mousePressEvent(self, event):
-        # Запоминаем начальные позиции всех выделенных фигур
-        self._initial_positions = {
-            item: item.pos() for item in self.selectedItems()
-        }
+        self._initial_positions = {item: item.pos() for item in self.selectedItems()}
         super().mousePressEvent(event)
 
-    def mouseReleaseEvent(self, event):
-        moved = False
-        for item in self.selectedItems():
-            old_pos = self._initial_positions.get(item)
-            if old_pos is not None and item.pos() != old_pos:
-                moved = True
-                break
+    # def mouseReleaseEvent(self, event):
+    #     moved = False
+    #     for item in self.selectedItems():
+    #         old_pos = self._initial_positions.get(item)
+    #         if old_pos is not None and item.pos() != old_pos:
+    #             moved = True
+    #             break
+    #     if moved:
+    #         self.undo_redo.push_state()
+    #     super().mouseReleaseEvent(event)
 
-        if moved:
-            self.undo_redo.push_state()
-
-        super().mouseReleaseEvent(event)
-        
-        
-# Подкласс QMainWindow для настройки главного окна приложения
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-                       
         self.setWindowTitle("gEditor")
-        self.resize(800,600)
+        self.resize(800, 600)
         
-        central = QWidget()        
+        central = QWidget()
         mainLayout = QVBoxLayout(central)
         
-        #self.mainScene = QGraphicsScene()
-        
-        self.undo_redo = UndoRedo(None)  # Временно без сцены
+        self.undo_redo = UndoRedo(None)
         self.mainScene = MainScene(self.undo_redo)
-        self.undo_redo.scene = self.mainScene  # Передаём сцену после инициализации
-
+        self.undo_redo.scene = self.mainScene
         
-        # Подключаем сигнал изменения цвета выделения фигур
         self.mainScene.selectionChanged.connect(self.update_selection)
-        self.mainScene.addText("")
         self.mainViewe = QGraphicsView(self.mainScene)
-        self.mainViewe.setDragMode(QGraphicsView.DragMode.RubberBandDrag)  # Режим выделения с помощью прямоугольной рамки
-        self.mainViewe.setRenderHint(QPainter.RenderHint.Antialiasing)     # Сглаживание
-        #self.undo_redo = UndoRedo(self.mainScene)
+        self.mainViewe.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
+        self.mainViewe.setRenderHint(QPainter.RenderHint.Antialiasing)
         self.delItem = Del()
                 
-        self.menuBar().addMenu("Файл")
-        self.menuBar().addMenu("Настройки")
-        self.menuBar().addMenu("Сохранить")
-        self.menuBar().addMenu("Загрузить")
-        
         toolbar = QToolBar("Main toolbar")
         self.addToolBar(toolbar)
         
@@ -83,11 +71,7 @@ class MainWindow(QMainWindow):
         action10 = QAction("Triangle", self)
         action10.triggered.connect(self.add_triangle_triggered)
         toolbar.addAction(action10)
-        
-        action11 = QAction("Rotate Triangle", self)
-        action11.triggered.connect(self.add_rotate_triangle_triggered)
-        toolbar.addAction(action11)
-        
+                
         action3 = QAction("Group", self)
         action3.triggered.connect(self.add_groupe_triggered)
         toolbar.addAction(action3)
@@ -119,110 +103,168 @@ class MainWindow(QMainWindow):
         action9.triggered.connect(self.rotate_item_right)
         toolbar.addAction(action9)
         
+        action12 = QAction("Toggle Auto-Rotate", self)
+        action12.triggered.connect(self.toggle_auto_rotate)
+        toolbar.addAction(action12)
+        
+        save_action = QAction("Save", self)
+        save_action.triggered.connect(self.save_scene_triggered)
+        self.menuBar().addMenu("Сохранить").addAction(save_action)
+        
+        load_action = QAction("Load", self)
+        load_action.triggered.connect(self.load_scene_triggered)
+        self.menuBar().addMenu("Загрузить").addAction(load_action)
         
         mainLayout.addWidget(toolbar)
         mainLayout.addWidget(self.mainViewe)
         
-        # Устанавливаем центральный виджет Window.
         central.setLayout(mainLayout)
         self.setCentralWidget(central)
-        
-        #squareAction = toolbar.addAction("Круг")
-        #squareAction.setShortcut("Ctrl+O")
-         
-        # button = QPushButton("Press Me!")
-        
-        # button.setCheckable(True)
-        
-        # button.clicked.connect(self.the_button_was_clicked)
-        
-        # button.clicked.connect(self.the_button_was_toggled)
-               
-    # def the_button_was_clicked(self):
-    #     print("Clicked!")
-        
-    # def the_button_was_toggled(self, checked):
-    #     print("Checked?", checked)
     
     def update_selection(self):
-        # self.undo_redo.push_state()  # Сохраняем состояние перед изменением
-        # Принудительно обновляем сцену, чтобы перерисовать выделенные элементы
+        if not self.mainScene:
+            print("MainScene пуста, пропускаем update_selection")
+            return
+        print(f"Обновление выбранных элементов сцены. Элементы сцены: {[str(item) for item in self.mainScene.items()]}")
         self.mainScene.update()
-        
-    def del_item_triggered(self):
+
+    def del_item_triggered(self):        
         Del.deleteItem(self.mainScene)
-        self.undo_redo.push_state()  # Сохраняем состояние перед изменением
+        self.undo_redo.push_state()
         
     def add_rectangle_triggered(self):
-        currentShape = ShapeFactory()        
-        self.mainScene.addItem(currentShape.factory_method(TypeShape.RECTANGLE))
-        self.undo_redo.push_state()  # Сохраняем состояние перед изменением
-        print("Квадрат нарисовае!")
-        #self.undo_redo.push_state()  # Сохраняем состояние перед изменением
         
-    def add_triangle_triggered(self):
-        currentShape = ShapeFactory()        
-        self.mainScene.addItem(currentShape.factory_method(TypeShape.TRIANGLE))
-        self.undo_redo.push_state()  # Сохраняем состояние перед изменением
-        print("Треугольник нарисовае!")
-        #self.undo_redo.push_state()  # Сохраняем состояние перед изменением
+        currentShape = ShapeFactory()
+        shape = currentShape.factory_method(TypeShape.RECTANGLE)
+        shape.setPos(100 + len(self.mainScene.items()) * 10, 100)  # Avoid overlap
+        self.mainScene.addItem(shape)
+        self.undo_redo.push_state()
+        print("Квадрат нарисован!")
         
-    def add_rotate_triangle_triggered(self):
-        currentShape = ShapeFactory()        
-        self.mainScene.addItem(currentShape.factory_method(TypeShape.ROTATE_TRIANGLE))
-        self.undo_redo.push_state()  # Сохраняем состояние перед изменением
-        print("Вращающийся треугольник нарисовае!")
-        #self.undo_redo.push_state()  # Сохраняем состояние перед изменением
+    def add_triangle_triggered(self): 
+        currentShape = ShapeFactory()
+        shape = currentShape.factory_method(TypeShape.TRIANGLE)
+        shape.setPos(100 + len(self.mainScene.items()) * 10, 100)
+        self.mainScene.addItem(shape)
+        self.undo_redo.push_state()
+        print("Треугольник нарисован!")
+        
         
     def add_circle_triggered(self):
-        currentShape = ShapeFactory()        
-        self.mainScene.addItem(currentShape.factory_method(TypeShape.CIRCLE))
-        print("Круг нарисовае!")
-        self.undo_redo.push_state()  # Сохраняем состояние перед изменением
+        
+        currentShape = ShapeFactory()
+        shape = currentShape.factory_method(TypeShape.CIRCLE)
+        shape.setPos(100 + len(self.mainScene.items()) * 10, 100)
+        self.mainScene.addItem(shape)
+        self.undo_redo.push_state()
+        print("Круг нарисован!")
         
     def rotate_item_left(self):
         selected_items = self.mainScene.selectedItems()
         for item in selected_items:
             if hasattr(item, 'rotationItem'):
                 item.rotationItem("left")
-        self.undo_redo.push_state()  # Сохраняем состояние после вращения
+        self.undo_redo.push_state()
         
     def rotate_item_right(self):
         selected_items = self.mainScene.selectedItems()
         for item in selected_items:
             if hasattr(item, 'rotationItem'):
                 item.rotationItem("right")
-        self.undo_redo.push_state()  # Сохраняем состояние после вращения
+        self.undo_redo.push_state()
+        
+    
+    def toggle_auto_rotate(self):
+        print("Старт toggle_auto_rotate")
+        selected_items = self.mainScene.selectedItems()
+        print(f"Выбранные элементы: {[type(item).__name__ for item in selected_items]}")
+        for item in self.mainScene.selectedItems():
+            print(f"Обработка элемента: {type(item).__name__}, toggle_rotation: {hasattr(item, 'toggle_rotation')}")
+            if not hasattr(item, 'toggle_rotation'):
+                # Применим декоратор вручную
+                cls = auto_rotate(item.__class__)
+                if isinstance(item, GroupShape): 
+                    # Сохраняем дочерние элементы
+                    children = item._children.copy() 
+                    new_item = cls(children=children) 
+                else: 
+                    new_item = cls()
+                print(f"Новая фигура создана: {type(new_item).__name__}, toggle_rotation: {hasattr(new_item, 'toggle_rotation')}")
+                if not hasattr(new_item, 'toggle_rotation'):
+                    raise RuntimeError(f"Не удалось создать анимированный элемент {type(new_item).__name__}")
+                # Копируем позицию и цвет
+                new_item.setPos(item.pos())
+                if hasattr(item, 'color'):
+                    new_item.color = item.color
+                if hasattr(item, 'zValue'):  
+                    new_item.setZValue(item.zValue()) 
+                if hasattr(item, '_current_angle'): 
+                    new_item._current_angle = item._current_angle
+                self.mainScene.removeItem(item)
+                self.mainScene.addItem(new_item)
+                new_item.toggle_rotation()
+                new_item.setSelected(True)
+            else:
+                # Если объект уже обернут декоратором, просто переключаем вращение
+                print("Переключение существующего вращения")
+                item.toggle_rotation()
+        self.undo_redo.push_state()
         
     def add_groupe_triggered(self):
-        self.undo_redo.push_state()  # <--- Сохраняем СЦЕНУ до группировки!
         selected_items = self.mainScene.selectedItems()
-        
         if len(selected_items) > 1:
-            group = GroupShape()  # Используем наш класс GroupShape
-            
+            group = GroupShape()
+            min_x = min(item.scenePos().x() for item in selected_items)
+            min_y = min(item.scenePos().y() for item in selected_items)
+            group.setPos(min_x, min_y)
+            print(f"Позиция группы: ({min_x}, {min_y})")
             for item in selected_items:
                 item.setSelected(False)
                 self.mainScene.removeItem(item)
+                rel_x = item.scenePos().x() - min_x
+                rel_y = item.scenePos().y() - min_y
+                item.setPos(rel_x, rel_y)
+                print(f"Child позиция: ({rel_x}, {rel_y})")
                 group.addToGroup(item)
-            
+            group.update_rotation_center()
             self.mainScene.addItem(group)
             group.setSelected(True)
+            self.undo_redo.push_state()
             print("Фигуры сгруппированы!")
-        #self.undo_redo.push_state()  # Сохраняем состояние перед изменением
             
     def add_ungroupe_triggered(self):
-        selected_items = self.mainScene.selectedItems() # Получаем все выделенные элементы
+        selected_items = self.mainScene.selectedItems()
+        changed = False
+        # Откл selectionChanged для избежания преждевременных вызовов
+        self.mainScene.selectionChanged.disconnect(self.update_selection)
         for item in selected_items:
-            # Проверяем, является ли элемент группой
-            if isinstance(item, QGraphicsItemGroup): # isinstance используется для проверки принадлежности объекта к определённому классу или кортежу классов                
-                #group_pos = item.scenePos() # Запоминаем позицию группы                
-                children = item.childItems() # Получаем все дочерние элементы группы                            
-                self.mainScene.removeItem(item) # Удаляем группу со сцены
-                #self.mainScene.destroyItemGroup(item) # Разгруппировка
-                for child in children: # Восстанавливаем элементы с учетом позиции группы
-                    child.setPos(child.scenePos())  # Сохраняем абсолютную позицию
-                    self.mainScene.addItem(child)
-                    child.setSelected(True)
-        self.undo_redo.push_state()  # Сохраняем состояние перед изменением
-            
+            if isinstance(item, GroupShape):
+                item.ungroup(self.mainScene)
+                changed = True
+        # Вкл selectionChanged
+        self.mainScene.selectionChanged.connect(self.update_selection)
+        if changed:
+            print("Отправка состояния после разгруппировки")
+            print(f"Элементы сцены до push_state: {[str(item) for item in self.mainScene.items()]}")
+            QTimer.singleShot(100, self.undo_redo.push_state)
+
+    def save_scene_triggered(self):
+        saver = Saver(self.mainScene)
+        with open('scene.json', 'w') as f:
+            f.write(saver.to_json())
+        self.undo_redo.clear()  # Очищаем стек
+        print("Сцена сохранена!")
+
+    def load_scene_triggered(self):
+        try:
+            with open('scene.json', 'r') as f:
+                scene_data = Saver.from_json(f.read())
+            if not scene_data:
+                print("Нет данных для загрузки из scene.json")
+                return
+            self.undo_redo.clear()  # Очищаем стек
+            self.undo_redo._restore_scene(scene_data)
+            self.undo_redo.push_state()  # Добавляем новое состояние
+            print("Сцена загружена!")
+        except Exception as e:
+            print(f"Ошибка загрузки сцены: {e}")

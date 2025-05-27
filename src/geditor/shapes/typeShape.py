@@ -6,4 +6,3 @@ class TypeShape(Enum) :
     RECTANGLE = 1
     CIRCLE = 2
     TRIANGLE = 3
-    ROTATE_TRIANGLE = 4
