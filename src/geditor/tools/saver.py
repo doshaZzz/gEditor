@@ -12,6 +12,7 @@ class Saver:
         for item in self.scene.items():
             if not isinstance(item, Shape) or item in seen:
                 continue
+            seen.add(item)  # Добавляем элемент в множество
             # пропускаем дочерние элементы групп
             if item.parentItem() is not None:
                 continue

@@ -36,7 +36,6 @@ class UndoRedo:
 
     def _restore_scene(self, state):
         for item in self.scene.items():
-            #if not isinstance(item, QGraphicsItem) or item.__class__.__name__ != "QGraphicsTextItem":
             self.scene.removeItem(item)
         factory = ShapeFactory()
         for item_data in state:
